@@ -1,97 +1,130 @@
-# Ozon Parser
+# WB → Ozon Price Comparator Bot
 
-Парсер товаров Ozon.ru с GUI и Telegram-ботом. Многопоточный сбор данных о товарах и продавцах.
+Telegram бот для сравнения цен между Wildberries и Ozon.
+На вход принимает артикул товара с WB, на выходе показывает самый дешевый аналог на Ozon.
 
-## Demo
-
-<video src="assets/demo.mp4" controls width="100%"></video>
-
-
-## Возможности
-
-- ✅ Парсинг до 10,000 товаров из категорий
-- ✅ Данные о продавцах: ИНН, рейтинг, статистика
-- ✅ Многопоточность (до 5 воркеров)
-- ✅ Экспорт в Excel + JSON
-- ✅ Telegram бот для управления
-- ✅ GUI интерфейс
-
-## Установка
+## 📋 Требования
 
 ```bash
-git clone https://github.com/NurjahonErgashevMe/ozon-parser
-cd ozon-parser
-pip install -r requirements.txt
+pip install aiogram requests selenium selenium-stealth
 ```
 
-**Требования**: Python 3.11, Chrome браузер
+## 🔧 Установка
 
-## Запуск
+### 1. Получите токен Telegram бота
+
+1. Откройте Telegram и найдите бота **@BotFather**
+2. Отправьте команду `/newbot`
+3. Придумайте имя и username для бота (username должен заканчиваться на `bot`)
+4. BotFather выдаст вам токен вида: `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz`
+
+### 2. Узнайте свой Telegram ID (опционально)
+
+1. Найдите бота **@userinfobot**
+2. Он отправит вам ваш user ID (число)
+
+### 3. Настройте config.txt
+
+Откройте файл `config.txt` и замените значения:
+
+```txt
+TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+TELEGRAM_CHAT_ID=123456789
+```
+
+> Если оставить `TELEGRAM_CHAT_ID` пустым, бот будет доступен всем пользователям.
+
+## 🚀 Запуск
 
 ```bash
-python main.py          # GUI
-python bot.py           # Только Telegram бот
-python app.py           # CLI
+python wb_ozon_bot.py
 ```
 
-## Конфигурация
+## 📱 Как использовать
 
-Создайте `config.txt`:
+1. Откройте вашего бота в Telegram
+2. Отправьте команду `/start`
+3. Отправьте артикул товара с Wildberries (например: `15062891`)
+4. Бот покажет:
+   - Информацию о товаре на WB (цена, название, бренд)
+   - Самый дешевый аналог на Ozon
+   - Разницу в цене и выгоду
 
+## 🎯 Пример работы
+
+**Вход:** `15062891` (артикул WB)
+
+**Выход:**
 ```
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_user_id
-USER_your_user_id_SELECTED_FIELDS=name,company_name,inn,price
-USER_your_user_id_FIELD_ORDER=name,company_name,inn,price
-USER_your_user_id_DEFAULT_COUNT=500
-```
+✅ Товар найден на Wildberries:
 
-## Доступные поля
+📦 Футболка хлопковая унисекс
+🏷️ Бренд: OZON
+💰 Цена: 500 ₽
+⭐ Рейтинг: 4.8 (1234 отзывов)
 
-| Поле | Описание |
-|------|----------|
-| `article` | Артикул товара |
-| `name` | Название товара |
-| `seller_name` | Имя продавца |
-| `company_name` | Название компании |
-| `inn` | ИНН продавца |
-| `card_price` | Цена по карте |
-| `price` | Текущая цена |
-| `original_price` | Старая цена |
-| `product_url` | Ссылка на товар |
-| `image_url` | Ссылка на изображение |
-| `orders_count` | Количество заказов |
-| `reviews_count` | Количество отзывов |
-| `average_rating` | Средний рейтинг |
-| `working_time` | Дата регистрации |
+🔗 Ссылка на WB
 
-## Особенности
+🎉 Найден аналог на Ozon!
 
-- **Обход блокировки**: 3 драйвера × 3 попытки = 9 попыток обхода антибота
-- **Резервный поиск seller_id**: если не найден в основных данных, ищет по всему JSON
-- **Умное управление ресурсами**: автоматическое распределение воркеров между пользователями
-- **Headless режим**: настраивается в `src/config/settings.py`
+📦 Футболка базовая хлопок
+💰 Цена: 350 ₽
 
-## Структура вывода
+🔗 Ссылка на Ozon
 
-```
-output/
-└── category_name_DD.MM.YYYY_HH-MM-SS/
-    ├── links_*.json               # Собранные ссылки
-    ├── category_*.json            # Данные в JSON
-    └── category_*.xlsx            # Excel отчет
+💚 Выгода: 150 ₽ (30%)
 ```
 
-## Troubleshooting
+## 📁 Структура проекта
 
-**Парсинг селлеров не работает?**
-- Проверьте что в `SELECTED_FIELDS` есть хотя бы одно поле селлера: `inn`, `company_name`, `seller_name`, `orders_count`, `reviews_count`, `average_rating`, `working_time`
+```
+/workspace/
+├── wb_ozon_bot.py          # Основной файл бота
+├── config.txt              # Конфигурация (токен)
+├── src/
+│   └── parsers/
+│       ├── wb_parser.py           # Парсер Wildberries
+│       ├── ozon_analog_finder.py  # Поиск аналогов на Ozon
+│       └── product_parser.py      # Базовый парсер Ozon
+└── README.md               # Эта инструкция
+```
 
-**Блокировка Ozon?**
-- Установите `HEADLESS = False` в `src/config/settings.py`
-- Используйте прокси
-- Увеличьте задержки между запросами
+## ⚙️ Как это работает
 
-## Лицензия
+1. **Парсинг WB:** Бот получает информацию о товаре через API Wildberries (`card.wb.ru`)
+2. **Поиск на Ozon:** Использует название и бренд товара для поиска аналогов
+3. **Сравнение:** Находит самый дешевый вариант и рассчитывает выгоду
 
-MIT License
+## 🔍 Где найти артикул товара на WB
+
+Артикул можно найти:
+- В URL товара: `https://www.wildberries.ru/catalog/15062891/detail.aspx` → артикул `15062891`
+- В карточке товара под названием
+
+## ⚠️ Примечания
+
+- Для работы требуется установленный Google Chrome (для Selenium)
+- Некоторые товары могут не иметь аналогов на Ozon
+- Цены могут меняться, актуальность не гарантируется
+
+## 🛠️ Troubleshooting
+
+**Ошибка "Chrome not found":**
+```bash
+# Ubuntu/Debian
+sudo apt-get install chromium-chromedriver
+
+# Или установите ChromeDriver вручную
+```
+
+**Бот не отвечает:**
+- Проверьте токен в config.txt
+- Убедитесь что бот запущен командой `python wb_ozon_bot.py`
+
+**Товар не найден на WB:**
+- Проверьте правильность артикула
+- Товар может быть недоступен или удален
+
+## 📞 Поддержка
+
+При возникновении проблем создайте issue в репозитории.

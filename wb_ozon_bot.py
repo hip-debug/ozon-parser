@@ -10,7 +10,7 @@ import asyncio
 import threading
 from typing import Optional
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -157,10 +157,8 @@ class WBToOzonBot:
                 'ozon_analog': None
             }
     
-    async def _send_result(self, message: Message, result: dict, state: FSMContext):
+    async def _send_result(self, message: Message, result: dict):
         """Отправка результата пользователю"""
-        await state.clear()
-        
         if not result['success']:
             await message.reply(
                 f"❌ Ошибка: {result['error']}\n\n"
@@ -237,17 +235,29 @@ class WBToOzonBot:
         await message.reply("Хотите найти другой товар?", reply_markup=keyboard)
     
     async def _handle_message(self, message: Message):
-        """Обработка обычных сообщений"""
+        """Обработка обычных сообщений - пытаемся распознать артикул"""
         if not self._is_authorized(message.from_user.id):
             return
         
-        # Предлагаем ввести артикул
-        await message.reply(
-            "🔍 Пожалуйста, отправьте артикул товара с Wildberries.\n\n"
-            "Артикул обычно указан в URL товара или в карточке товара.\n"
-            "Пример: <code>15062891</code>",
-            parse_mode="HTML"
-        )
+        text = message.text.strip()
+        
+        # Если сообщение содержит только цифры - считаем это артикулом
+        if text.isdigit():
+            await message.reply(f"🔍 Ищу товар WB по артикулу <code>{text}</code>...")
+            
+            # Запускаем поиск в отдельном потоке чтобы не блокировать бота
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, self._find_analog_sync, text)
+            
+            await self._send_result(message, result)
+        else:
+            # Предлагаем ввести артикул
+            await message.reply(
+                "🔍 Пожалуйста, отправьте артикул товара с Wildberries.\n\n"
+                "Артикул обычно указан в URL товара или в карточке товара.\n"
+                "Пример: <code>15062891</code>",
+                parse_mode="HTML"
+            )
     
     async def _handle_callback(self, callback: types.CallbackQuery, state: FSMContext):
         """Обработка callback запросов от кнопок"""

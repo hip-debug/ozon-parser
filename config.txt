@@ -1,0 +1,6 @@
+# Замените на ваш токен от @BotFather
+TELEGRAM_BOT_TOKEN=YOUR_BOT_TOKEN_HERE
+
+# (Опционально) Ваш Telegram user ID для ограничения доступа
+# Узнать можно через бота @userinfobot
+TELEGRAM_CHAT_ID=YOUR_USER_ID_HERE
